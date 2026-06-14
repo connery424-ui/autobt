@@ -1,0 +1,481 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217.2 91.2% 70%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 220 10% 15%;
+    --input: 0 0% 15%;
+    --ring: 224.3 76.3% 94.1%;
+  }
+}
+
+/* Custom wallet adapter modal styling */
+.wallet-adapter-modal {
+  z-index: 999999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 16px !important;
+}
+
+.wallet-adapter-modal-overlay {
+  z-index: 999999 !important;
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.wallet-adapter-modal-container {
+  background: rgba(8, 5, 12, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 16px !important;
+  padding: 8px 16px 8px 16px !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  max-width: 320px !important;
+  width: 100% !important;
+  position: relative !important;
+  z-index: 1000000 !important;
+  min-height: auto !important;
+  height: auto !important;
+}
+
+.wallet-adapter-modal-wrapper {
+  background: transparent !important;
+  z-index: 1000000 !important;
+}
+
+.wallet-adapter-modal-title {
+  color: white !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  margin-bottom: 6px !important;
+  margin-top: 2px !important;
+  text-align: center !important;
+}
+
+.wallet-adapter-modal-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+/* Also target ul/ol variants */
+ul.wallet-adapter-modal-list,
+ol.wallet-adapter-modal-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+/* Target the container div that might hold the list */
+.wallet-adapter-modal-container .wallet-adapter-modal-list {
+  gap: 20px !important;
+}
+
+/* Alternative targeting for wallet list items with margin */
+.wallet-adapter-modal-list > * {
+  margin-bottom: 20px !important;
+}
+
+.wallet-adapter-modal-list > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+.wallet-adapter-modal-list-item {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 10px !important;
+  padding: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  min-height: 48px !important;
+  margin-bottom: 0 !important;
+}
+
+.wallet-adapter-modal-list-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(102, 126, 234, 0.5) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+.wallet-adapter-modal-list-item img {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  flex-shrink: 0 !important;
+}
+
+.wallet-adapter-modal-list-item-name {
+  color: white !important;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  flex: 1 !important;
+}
+
+.wallet-adapter-modal-list-item-status {
+  font-size: 12px !important;
+  color: #10b981 !important;
+  font-weight: 400 !important;
+}
+
+.wallet-adapter-button {
+  background: linear-gradient(135deg, #4f81ff 0%, #6366f1 100%) !important;
+  color: white !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 14px 0 rgba(79, 129, 255, 0.39) !important;
+}
+
+.wallet-adapter-button:hover {
+  background: linear-gradient(135deg, #3b6df0 0%, #4f46e5 100%) !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 10px 25px rgba(79, 129, 255, 0.5) !important;
+}
+
+.wallet-adapter-button[disabled] {
+  opacity: 0.6 !important;
+}
+
+.wallet-adapter-modal-button-close {
+  position: absolute !important;
+  top: 8px !important;
+  right: 16px !important;
+  background: transparent !important;
+  border: none !important;
+  color: #9ca3af !important;
+  cursor: pointer !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  transition: color 0.2s ease !important;
+}
+
+.wallet-adapter-modal-button-close:hover {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom components and utilities */
+.glass {
+  background: rgba(8, 5, 12, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.neon-glow {
+  box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+}
+
+.hover-card {
+  transition: all 0.3s ease;
+}
+
+.hover-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.gradient-success {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--accent));
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary));
+}
+
+/* Loading animations */
+.pulse-slow {
+  animation: pulse 2s infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+  }
+  to {
+    box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Logo scale-in animation */
+.logo-scale-in {
+  animation: scaleIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Force Connect Wallet button to be blue */
+.glass button[class*="bg-primary"],
+button[class*="bg-gradient-to-r"] {
+  background: linear-gradient(135deg, #4f81ff 0%, #6366f1 100%) !important;
+}
+
+.glass button[class*="bg-primary"]:hover,
+button[class*="bg-gradient-to-r"]:hover {
+  background: linear-gradient(135deg, #3b6df0 0%, #4f46e5 100%) !important;
+  transform: scale(1.05);
+}
+
+/* Apply same hover effect to New Snipe Config button */
+.hover-expand-button {
+  background: linear-gradient(135deg, #4f81ff 0%, #6366f1 100%) !important;
+  transition: all 0.3s ease !important;
+}
+
+.hover-expand-button:hover {
+  background: linear-gradient(135deg, #3b6df0 0%, #4f46e5 100%) !important;
+  transform: scale(1.05) !important;
+  box-shadow: 0 10px 25px rgba(79, 129, 255, 0.3) !important;
+}
+
+/* Fix any potential conflicts */
+.wallet-adapter-dropdown {
+  z-index: 1000001 !important;
+}
+
+.wallet-adapter-dropdown-list {
+  z-index: 1000001 !important;
+  background: rgba(8, 5, 12, 0.95) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+}
+
+.wallet-adapter-modal-middle {
+  padding: 0 !important;
+}
+
+.wallet-adapter-modal-wrapper > div > div {
+  padding-bottom: 8px !important;
+}
+
+/* Additional wallet modal overrides for compact appearance */
+.wallet-adapter-modal-container > div {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.wallet-adapter-modal-container > div > div {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.wallet-adapter-modal .wallet-adapter-modal-wrapper > div {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.wallet-adapter-modal h2 {
+  margin-top: 0 !important;
+  margin-bottom: 8px !important;
+  padding-top: 0 !important;
+}
+
+.wallet-adapter-modal-list-more {
+  margin-top: 4px !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Force minimal spacing on all wallet modal children */
+.wallet-adapter-modal-container * {
+  margin-top: 0 !important;
+}
+
+.wallet-adapter-modal-container h2:first-child {
+  margin-top: 0 !important;
+}
+
+/* Target the main modal content wrapper */
+.wallet-adapter-modal-wrapper > div {
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: auto !important;
+}
+
+/* Remove any default spacing from button containers */
+.wallet-adapter-modal-list-more-options {
+  margin-top: 8px !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+}
+
+/* Aggressively target all wallet modal elements for compact spacing */
+.wallet-adapter-modal-container [role="button"] {
+  margin-bottom: 0 !important;
+}
+
+.wallet-adapter-modal-container button {
+  margin-bottom: 0 !important;
+}
+
+/* Target the entire modal content area */
+.wallet-adapter-modal-container > * {
+  margin-bottom: 0 !important;
+}
+
+.wallet-adapter-modal-container > *:last-child {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+/* Remove any extra space from wallet buttons container */
+.wallet-adapter-modal-button-container {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Simple spacing adjustment - add gap before Coinbase and WalletConnect */
+.wallet-adapter-modal-list-item:nth-child(3)::before {
+  content: '';
+  display: block;
+  height: 8px;
+}
+
+/* Target individual wallet buttons regardless of container structure */
+.wallet-adapter-modal button {
+  margin-bottom: 16px !important;
+}
+
+.wallet-adapter-modal button:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Target any list items that might contain the wallet buttons */
+.wallet-adapter-modal li {
+  margin-bottom: 16px !important;
+}
+
+.wallet-adapter-modal li:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Force spacing on any clickable wallet elements */
+.wallet-adapter-modal [role="button"] {
+  margin-bottom: 16px !important;
+}
+
+.wallet-adapter-modal [role="button"]:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Target any list-like structure in wallet modal */
+.wallet-adapter-modal-container > div > * {
+  margin-bottom: 16px !important;
+}
+
+.wallet-adapter-modal-container > div > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Catch-all for wallet items */
+[class*="wallet-adapter-modal"] [class*="list-item"] {
+  margin-bottom: 16px !important;
+}

@@ -1,0 +1,85 @@
+name: Build installers (all platforms)
+
+# Builds a native installer for each OS on its own runner:
+#   - macOS  -> .dmg (arm64 + x64, built sequentially to avoid hdiutil resize errors)
+#   - Windows-> .exe (NSIS, x64)
+#   - Linux  -> AppImage + .deb (x64)
+# Triggers on a version tag (v1.2.3) or manually from the Actions tab.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # Windows-only delivery. macOS/Linux removed so a tag publishes cleanly
+        # (the publish job needs every build leg green).
+        os: [windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # ---- Root app: frontend + bundled server + prisma client ----
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+        env:
+          # schema uses env("DATABASE_URL"); generate needs it resolvable
+          DATABASE_URL: "file:./prisma/sqlite/data.db"
+
+      - name: Build app (frontend + server)
+        run: npm run build:app
+
+      # ---- Launcher: electron-builder packaging ----
+      - name: Install launcher dependencies
+        working-directory: launcher
+        run: npm ci
+
+      - name: Build Windows installer
+        working-directory: launcher
+        run: npm run build:win
+
+      # ---- Collect artifacts ----
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.os }}
+          path: |
+            launcher/dist/*.exe
+          if-no-files-found: warn
+
+  # Optional: attach everything to a GitHub Release when triggered by a tag.
+  release:
+    name: Publish release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,360 @@
+// Root Prisma schema - SQLite local database (no Supabase)
+generator client {
+  provider      = "prisma-client-js"
+  // §9.1: generate engines for every shipping platform so each installer
+  // (mac arm64/x64, Windows) carries the right query engine.
+  binaryTargets = ["native", "darwin", "darwin-arm64", "windows"]
+}
+
+datasource db {
+  provider = "sqlite"
+  // Read from env so the packaged app can point SQLite at the user's writable
+  // data dir (%APPDATA%/userData). A hardcoded relative path resolved inside the
+  // read-only install dir (Program Files) and caused SQLITE_CANTOPEN (error 14).
+  url      = env("DATABASE_URL")
+}
+
+// === AUTH / USERS ===
+
+model users {
+  id            String          @id @default(cuid())
+  walletAddress String          @unique
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @default(now()) @updatedAt
+  settings_json String?         @default("{}")
+
+  managed_wallets  managed_wallets[]
+  sniper_configs   sniper_configs[]
+  transactions     transactions[]
+  user_sessions    user_sessions[]
+  snipe_settings   snipe_settings[]
+  token_holdings   token_holdings[]
+  snipe_executions snipe_executions[]
+
+  @@index([walletAddress])
+  @@index([id])
+}
+
+model managed_wallets {
+  id                  String    @id @default(cuid())
+  userId              String
+  walletName          String
+  publicKey           String    @unique
+  encryptedPrivateKey String
+  balanceSol          Float     @default(0)
+  balanceTokens       String?   @default("{}")
+  isActive            Boolean   @default(true)
+  wallet_type         String    @default("sniping")
+  is_encrypted        Boolean   @default(true)
+  encryption_salt     String?
+  access_level        String    @default("full")
+  createdAt           DateTime  @default(now())
+  lastUsedAt          DateTime?
+  transactionCount    Int       @default(0)
+  created_at          DateTime? @default(now())
+  updated_at          DateTime? @default(now())
+
+  users               users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([userId, isActive])
+}
+
+model user_sessions {
+  id            String   @id @default(cuid())
+  user_id       String
+  session_token String   @unique
+  wallet_address String
+  expires_at    DateTime
+  is_active     Boolean  @default(true)
+  ip_address    String?
+  user_agent    String?
+  created_at    DateTime @default(now())
+
+  users         users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([expires_at])
+}
+
+// === TRADING ===
+
+model transactions {
+  id           String   @id @default(cuid())
+  txId         String   @unique
+  tokenName    String
+  tokenSymbol  String?
+  tokenAddress String
+  type         String
+  amount       Float
+  price        Float
+  profit       Float?   @default(0)
+  status       String   @default("pending")
+  timestamp    DateTime @default(now())
+  tokenType    String   @default("sol")
+  dex          String
+  userId       String
+
+  // SOL tracking fields
+  totalSolCost Float?
+  gasFees      Float?
+  jitoTip      Float?
+  netSolAmount Float?
+  preBalance   Float?
+  postBalance  Float?
+
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([timestamp])
+  @@index([txId])
+  @@index([userId, timestamp])
+}
+
+model sniper_configs {
+  id           String   @id @default(cuid())
+  name         String
+  tokenAddress String
+  buyAmount    String
+  sellTarget   String
+  stopLoss     String
+  maxSlippage  String
+  tokenType    String   @default("sol")
+  dex          String
+  autoApprove  Boolean  @default(false)
+  gasLimit     String?
+  isActive     Boolean  @default(false)
+  walletId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+  userId       String
+
+  users        users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+  @@index([walletId])
+}
+
+model active_snipes {
+  id             String    @id @default(cuid())
+  configId       String
+  tokenAddress   String
+  buyTxId        String
+  status         String
+  startedAt      DateTime  @default(now())
+  lastPriceCheck DateTime?
+
+  @@index([status])
+}
+
+model new_tokens {
+  id                String   @id @default(cuid())
+  tokenAddress      String   @unique
+  tokenName         String?
+  tokenSymbol       String?
+  description       String?
+  imageUri          String?
+  createdAt         DateTime @default(now())
+
+  liquidityPool     String?
+  bondingCurveKey   String?
+  marketCap         Float?
+  marketCapSol      Float?
+  initialPrice      Float?
+  liquidityUsd      Float?
+  vSolInBondingCurve Float?
+
+  isBonded          Boolean  @default(false)
+  bondedAt          DateTime?
+
+  buyCount          Int      @default(0)
+  sellCount         Int      @default(0)
+  buySolVolume      Float    @default(0)
+  sellSolVolume     Float    @default(0)
+  volume24h         Float?
+  priceChange24h    Float?
+
+  dex               String   @default("pump.fun")
+  source            String   @default("pumpportal")
+  isMonitored       Boolean  @default(false)
+  lastUpdatedAt     DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([isBonded])
+  @@index([dex])
+  @@index([tokenSymbol])
+}
+
+model snipe_settings {
+  id                     String   @id @default(cuid())
+  userId                 String
+  name                   String   @default("Default")
+
+  walletId               String?  // selected trading wallet (persists the UI choice; used by manual + auto)
+
+  buyAmountSol           Float    @default(0.1)
+  slippageBps            Int      @default(100)
+  priorityFeeLamports    Int      @default(100000)
+  useJito                Boolean  @default(true)
+  jitoTipLamports        Int      @default(50000)
+
+  minLiquidityUsd        Float    @default(1000)
+  maxLiquidityUsd        Float    @default(35000)
+  maxTokenAgeSec         Int      @default(60)
+
+  minMarketCapSol        Float?
+  maxMarketCapSol        Float?
+  minMarketCapUsd        Float?    @default(0)
+  maxMarketCapUsd        Float?    @default(0)
+
+  enableRaydium          Boolean  @default(true)
+  enablePumpfun          Boolean  @default(true)
+  enableLaunchlab        Boolean  @default(true)
+
+  preBondedOnly          Boolean  @default(false)
+
+  checkMintAuthority     Boolean  @default(true)
+  checkFreezeAuthority   Boolean  @default(true)
+  maxHolderConcentration Float    @default(30.0)
+  requireLiquidityLock   Boolean  @default(false)
+
+  requireTwitter         Boolean  @default(false)
+  requireTelegram        Boolean  @default(false)
+  requireWebsite         Boolean  @default(false)
+
+  autoSellEnabled        Boolean  @default(false)
+  takeProfitPercent      Float?   // sell when position is up this %
+  stopLossPercent        Float?   // sell when position is down this % (positive number)
+  trailingStopPercent    Float?   // sell when price falls this % from its peak after entry
+  maxHoldSec             Int?     // sell after holding this long, regardless of P&L
+
+  // ── Momentum auto-buy (buy existing tokens whose price-change % crosses thresholds) ──
+  momentumEnabled        Boolean  @default(false)
+  minChange5m            Float?   // buy only if 5m price change % >= this (null = ignore)
+  minChange1h            Float?   // buy only if 1h price change % >= this
+  minChange24h           Float?   // buy only if 24h price change % >= this
+  maxChange5m            Float?   // ...and <= this (upper bound; min+max both negative = dip-buy range)
+  maxChange1h            Float?
+  maxChange24h           Float?
+  minTokenAgeSec         Int?     // token must be at least this old (needs price history)
+  momentumCooldownSec    Int      @default(300)  // don't re-buy the same token within this window
+  momentumMaxPositions   Int      @default(5)    // max concurrent auto-bought positions
+
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @default(now()) @updatedAt
+
+  users                  users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model token_holdings {
+  id               String   @id @default(cuid())
+  userId           String
+  tokenAddress     String
+  tokenName        String?
+  tokenSymbol      String?
+  tokenDecimals    Int      @default(9)
+
+  amount           Float
+  averageBuyPrice  Float
+  totalCostSol     Float
+
+  currentPrice     Float?
+  currentValueSol  Float?
+  unrealizedPnl    Float?
+  unrealizedPnlPct Float?
+
+  dex              String
+  isPreBonded      Boolean  @default(false)
+  bondingProgress  Float?
+  firstBuyAt       DateTime @default(now())
+  lastUpdatedAt    DateTime @default(now())
+
+  users            users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tokenAddress])
+  @@index([userId])
+  @@index([tokenAddress])
+}
+
+model snipe_executions {
+  id              String    @id @default(cuid())
+  settingsId      String?
+  userId          String
+
+  tokenAddress    String
+  tokenName       String?
+  tokenSymbol     String?
+  dex             String
+
+  buyAmountSol    Float
+  tokensReceived  Float?
+  buyPrice        Float?
+  txSignature     String?
+
+  status          String    @default("pending")
+  failureReason   String?
+
+  detectedAt      DateTime
+  executedAt      DateTime?
+  confirmedAt     DateTime?
+  latencyMs       Int?
+
+  passedMintCheck   Boolean?
+  passedFreezeCheck Boolean?
+  riskScore         Int?
+
+  createdAt       DateTime  @default(now())
+
+  users           users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([tokenAddress])
+  @@index([createdAt])
+}
+
+
+// Token cache for PumpPortal
+model Token {
+  id                String   @id @default(cuid())
+  tokenAddress      String   @unique
+  tokenName         String?
+  tokenSymbol       String?
+  description       String?
+  imageUri          String?
+  bondingCurveKey   String?
+  marketCapSol      Float?
+  vSolInBondingCurve Float?
+  liquidityUsd      Float?
+  volume24h         Float?
+  priceChange24h    Float?
+  twitter           String?
+  telegram          String?
+  website           String?
+  dex               String   @default("bonkisfun")
+  source            String   @default("pumpportal")
+  isBonded          Boolean  @default(false)
+  buyCount          Int      @default(0)
+  sellCount         Int      @default(0)
+  buySolVolume      Float    @default(0)
+  sellSolVolume     Float    @default(0)
+  createdAt         DateTime @default(now())
+  lastUpdatedAt     DateTime @default(now())
+
+  @@index([tokenAddress])
+  @@index([createdAt])
+}
+
+// === APP CONFIG (replaces .env for non-bootstrap keys) ===
+// WALLET_ENCRYPTION_KEY and JWT_SECRET still come from .env (bootstrap)
+model app_config {
+  key       String   @id
+  value     String
+  updatedAt DateTime @default(now()) @updatedAt
+}

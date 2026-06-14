@@ -1,0 +1,130 @@
+{
+  "name": "autotraderbot-launcher",
+  "version": "2.8.2",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "description": "AutoTraderBot - One-click desktop launcher",
+  "main": "main.js",
+  "author": "AutoTraderBot Team",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron . --dev",
+    "dev": "electron . --dev",
+    "build": "npm run build:mac",
+    "build:concurrent": "electron-builder",
+    "build:mac": "npm run build:mac:arm64 && npm run build:mac:x64",
+    "build:mac:arm64": "electron-builder --mac dmg --arm64",
+    "build:mac:x64": "electron-builder --mac dmg --x64",
+    "build:win": "electron-builder --win --x64",
+    "build:linux": "electron-builder --linux --x64",
+    "prebuild:clean": "node -e \"const fs=require('fs');try{for(const f of fs.readdirSync('dist')){if(/^AutoBot Trading.*\\.(dmg|blockmap)$/.test(f))fs.rmSync('dist/'+f)}}catch{}\"",
+    "build:full": "cd .. && npm run build:app && cd launcher && npm run build:mac"
+  },
+  "build": {
+    "appId": "com.autotraderbot.app",
+    "productName": "AutoBot Trading",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "**/*",
+      "!dist/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../server-build",
+        "to": "server-build",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../dist",
+        "to": "dist",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../prisma",
+        "to": "prisma",
+        "filter": [
+          "schema.prisma",
+          "sqlite/**"
+        ]
+      },
+      {
+        "from": "../node_modules/.prisma",
+        "to": "node_modules/.prisma",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../node_modules/@prisma",
+        "to": "node_modules/@prisma",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../node_modules/prisma",
+        "to": "node_modules/prisma",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.finance",
+      "icon": "assets/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "category": "Finance",
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "open": "^8.4.2"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  }
+}

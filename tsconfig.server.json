@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "allowJs": true,
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "outDir": "./dist",
+    "rootDir": "./",
+    "downlevelIteration": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "server.ts",
+    "src/lib/**/*",
+    "src/middleware/**/*",
+    "src/routes/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/pages/**/*",
+    "src/components/**/*",
+    "src/contexts/**/*",
+    "src/hooks/**/*",
+    "src/App.tsx",
+    "src/main.tsx",
+    "src/simpleRouter.tsx"
+  ]
+}

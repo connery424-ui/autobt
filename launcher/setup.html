@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoBot Trading — Setup</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --surface: #13131a;
+            --surface2: #1c1c28;
+            --border: #2a2a3d;
+            --accent: #6c63ff;
+            --accent2: #00d4aa;
+            --danger: #ff4757;
+            --text: #e8e8f0;
+            --muted: #6b6b80;
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            -webkit-app-region: no-drag;
+        }
+
+        /* ── Sidebar ─────────────────────────────────────────── */
+        .layout {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 220px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 32px 0 24px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 20px 32px;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .brand-text {
+            line-height: 1.2;
+        }
+
+        .brand-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .steps {
+            flex: 1;
+            padding: 0 12px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-size: 13px;
+            color: var(--muted);
+            cursor: default;
+            transition: all .2s;
+        }
+
+        .step.active {
+            background: rgba(108, 99, 255, .15);
+            color: var(--text);
+        }
+
+        .step.done {
+            color: var(--accent2);
+        }
+
+        .step-num {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1.5px solid currentColor;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .step.active .step-num {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        .step.done .step-num {
+            background: var(--accent2);
+            border-color: var(--accent2);
+            color: #fff;
+        }
+
+        .sidebar-footer {
+            padding: 0 20px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* ── Main Content ─────────────────────────────────────── */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 40px 48px;
+            overflow-y: auto;
+            animation: fadeIn .25s ease;
+        }
+
+        .panel.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 32px;
+        }
+
+        /* ── Cards ───────────────────────────────────────────── */
+        .card {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        /* ── Form Fields ─────────────────────────────────────── */
+        .field {
+            margin-bottom: 18px;
+        }
+
+        .field:last-child {
+            margin-bottom: 0;
+        }
+
+        .field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .field .hint {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 5px;
+        }
+
+        .field .hint a {
+            color: var(--accent);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .field .hint a:hover {
+            text-decoration: underline;
+        }
+
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            padding: 10px 44px 10px 14px;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+        }
+
+        .toggle-vis {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .toggle-vis:hover {
+            color: var(--text);
+        }
+
+        /* ── Checks list ─────────────────────────────────────── */
+        .checks {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .checks li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .check-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .check-icon.ok {
+            background: rgba(0, 212, 170, .15);
+            color: var(--accent2);
+        }
+
+        .check-icon.pending {
+            background: rgba(108, 99, 255, .15);
+            color: var(--accent);
+        }
+
+        .check-icon.warn {
+            background: rgba(255, 71, 87, .12);
+            color: var(--danger);
+        }
+
+        /* ── Buttons ─────────────────────────────────────────── */
+        .actions {
+            margin-top: auto;
+            padding-top: 24px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        button {
+            padding: 11px 28px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all .2s;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--text);
+            color: var(--text);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #8b5cf6);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            opacity: .9;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: .4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--accent2), #00b894);
+            color: #fff;
+        }
+
+        /* ── Error/Success banners ───────────────────────────── */
+        .banner {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .banner.error {
+            background: rgba(255, 71, 87, .12);
+            border: 1px solid rgba(255, 71, 87, .3);
+            color: #ff6b7a;
+        }
+
+        .banner.success {
+            background: rgba(0, 212, 170, .10);
+            border: 1px solid rgba(0, 212, 170, .3);
+            color: var(--accent2);
+        }
+
+        .banner.show {
+            display: block;
+        }
+
+        /* ── Spinner ─────────────────────────────────────────── */
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, .3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Welcome panel ───────────────────────────────────── */
+        .welcome-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+            gap: 16px;
+        }
+
+        .hero-icon {
+            width: 80px;
+            height: 80px;
+            background: transparent;
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 8px;
+            box-shadow: 0 0 40px rgba(108, 99, 255, .3);
+        }
+        .brand-icon img,
+        .hero-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .welcome-hero h1 {
+            font-size: 32px;
+        }
+
+        /* ── Done panel ──────────────────────────────────────── */
+        .done-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+            gap: 12px;
+        }
+
+        .done-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent2), #00b894);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 0 40px rgba(0, 212, 170, .3);
+            animation: pop .4s cubic-bezier(.175, .885, .32, 1.275);
+        }
+
+        @keyframes pop {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon"><img src="assets/icon.png" alt="AutoBot Trading"></div>
+                <div class="brand-text">
+                    <div class="brand-name">AutoBot Trading</div>
+                    <div class="brand-sub">Setup Wizard</div>
+                </div>
+            </div>
+
+            <nav class="steps" id="sidebarSteps">
+                <div class="step active" data-step="0">
+                    <div class="step-num">1</div>
+                    <span>Welcome</span>
+                </div>
+                <div class="step" data-step="1">
+                    <div class="step-num">2</div>
+                    <span>API Keys</span>
+                </div>
+                <div class="step" data-step="2">
+                    <div class="step-num">3</div>
+                    <span>Options</span>
+                </div>
+                <div class="step" data-step="3">
+                    <div class="step-num">4</div>
+                    <span>Complete</span>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">v1.0.0</div>
+        </aside>
+
+        <!-- Main -->
+        <main class="main">
+
+            <!-- Panel 0: Welcome -->
+            <div class="panel active" id="panel-0">
+                <div class="welcome-hero">
+                    <div class="hero-icon"><img src="assets/icon.png" alt="AutoBot Trading"></div>
+                    <h1>Welcome to AutoBot Trading</h1>
+                    <p class="subtitle">A powerful Solana trading bot. Let's get you set up in 2 minutes.</p>
+                </div>
+                <div class="actions">
+                    <button class="btn-primary" onclick="goTo(1)">Get Started →</button>
+                </div>
+            </div>
+
+            <!-- Panel 1: API Keys -->
+            <div class="panel" id="panel-1">
+                <h1>API Keys</h1>
+                <p class="subtitle">Connect AutoBot to the Solana network.</p>
+
+                <div id="apiError" class="banner error"></div>
+
+                <div class="card">
+                    <div class="card-title">Required</div>
+
+                    <div class="field">
+                        <label>Helius API Key <span style="color:var(--danger)">*</span></label>
+                        <div class="input-wrap">
+                            <input type="password" id="heliusKey" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+                            <button class="toggle-vis" onclick="toggleVis('heliusKey', this)">👁</button>
+                        </div>
+                        <p class="hint">Get a free key at <a onclick="openLink('https://helius.xyz')">helius.xyz</a> →
+                            Dashboard → API Keys</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Optional — Enhanced Performance</div>
+
+                    <div class="field">
+                        <label>Tavahin RPC URL</label>
+                        <div class="input-wrap">
+                            <input type="text" id="tavahinRpc" placeholder="https://rpc.tavahin.com/solana" />
+                        </div>
+                        <p class="hint">Faster RPC for sniping. <a
+                                onclick="openLink('https://tavahin.com')">tavahin.com</a></p>
+                    </div>
+
+                    <div class="field">
+                        <label>Tavahin API Key</label>
+                        <div class="input-wrap">
+                            <input type="password" id="tavahinKey" placeholder="your_tavahin_key" />
+                            <button class="toggle-vis" onclick="toggleVis('tavahinKey', this)">👁</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn-ghost" onclick="goTo(0)">← Back</button>
+                    <button class="btn-primary" onclick="goTo(2)">Next →</button>
+                </div>
+            </div>
+
+            <!-- Panel 2: Options -->
+            <div class="panel" id="panel-2">
+                <h1>Options</h1>
+                <p class="subtitle">Configure your trading environment.</p>
+
+                <div id="optsError" class="banner error"></div>
+
+                <div class="card">
+                    <div class="card-title">Network</div>
+                    <div class="field">
+                        <label>Solana Network</label>
+                        <div class="input-wrap">
+                            <input type="text" id="solanaNetwork" value="mainnet" placeholder="mainnet" />
+                        </div>
+                        <p class="hint">Use <code style="color:var(--accent)">mainnet</code> for live trading, <code
+                                style="color:var(--accent)">devnet</code> for testing.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">Geyser gRPC (Optional — low-latency streaming)</div>
+
+                    <div class="field">
+                        <label>gRPC Endpoint</label>
+                        <div class="input-wrap">
+                            <input type="text" id="geyserEndpoint" placeholder="grpc.tavahin.com:443" />
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>gRPC Auth Token</label>
+                        <div class="input-wrap">
+                            <input type="password" id="geyserToken" placeholder="your_geyser_token" />
+                            <button class="toggle-vis" onclick="toggleVis('geyserToken', this)">👁</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="btn-ghost" onclick="goTo(1)">← Back</button>
+                    <button class="btn-primary" id="saveBtn" onclick="saveAndFinish()">
+                        <span class="spinner" id="spinner"></span>
+                        Save &amp; Launch →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel 3: Done -->
+            <div class="panel" id="panel-3">
+                <div class="done-hero">
+                    <div class="done-icon">✅</div>
+                    <h1>You're all set!</h1>
+                    <p class="subtitle">AutoBot Trading is configured and ready.<br>The app will launch now.</p>
+                </div>
+                <div class="actions" style="justify-content:center">
+                    <button class="btn-success" onclick="launchApp()">Launch AutoBot Trading 🚀</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        let currentStep = 0;
+
+        function goTo(step) {
+            // Validate step 1 (API keys) before advancing past it
+            if (currentStep === 1 && step > 1) {
+                const key = document.getElementById('heliusKey').value.trim();
+                if (!key) {
+                    showError('apiError', 'Helius API Key is required.');
+                    return;
+                }
+                hideError('apiError');
+            }
+
+            currentStep = step;
+
+            // Update panels
+            document.querySelectorAll('.panel').forEach((p, i) => {
+                p.classList.toggle('active', i === step);
+            });
+
+            // Update sidebar
+            document.querySelectorAll('.step').forEach((s, i) => {
+                s.classList.remove('active', 'done');
+                if (i < step) s.classList.add('done');
+                if (i === step) s.classList.add('active');
+            });
+        }
+
+        function toggleVis(id, btn) {
+            const input = document.getElementById(id);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁';
+            }
+        }
+
+        function openLink(url) {
+            window.setupAPI.openExternal(url);
+        }
+
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            el.textContent = '⚠️  ' + msg;
+            el.classList.add('show');
+        }
+
+        function hideError(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        async function saveAndFinish() {
+            const heliusKey = document.getElementById('heliusKey').value.trim();
+            if (!heliusKey) {
+                goTo(1);
+                showError('apiError', 'Helius API Key is required.');
+                return;
+            }
+
+            // Show spinner
+            document.getElementById('spinner').style.display = 'inline-block';
+            document.getElementById('saveBtn').disabled = true;
+
+            const config = {
+                HELIUS_API_KEY: heliusKey,
+                SOLANA_NETWORK: document.getElementById('solanaNetwork').value.trim() || 'mainnet',
+                TAVAHIN_RPC_URL: document.getElementById('tavahinRpc').value.trim(),
+                TAVAHIN_API_KEY: document.getElementById('tavahinKey').value.trim(),
+                GEYSER_GRPC_ENDPOINT: document.getElementById('geyserEndpoint').value.trim(),
+                GEYSER_AUTH_TOKEN: document.getElementById('geyserToken').value.trim(),
+            };
+
+            try {
+                await window.setupAPI.saveConfig(config);
+                goTo(3);
+            } catch (err) {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('saveBtn').disabled = false;
+                // Show on the Options panel (visible), not the hidden API-keys banner.
+                showError('optsError', 'Failed to save config: ' + err.message);
+            }
+        }
+
+        function launchApp() {
+            window.setupAPI.skipSetup();
+        }
+    </script>
+</body>
+
+</html>
