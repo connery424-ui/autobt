@@ -1,6 +1,6 @@
 {
   "name": "autotraderbot-launcher",
-  "version": "2.8.2",
+  "version": "2.8.3",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
@@ -25,6 +25,13 @@
   "build": {
     "appId": "com.autotraderbot.app",
     "productName": "AutoBot Trading",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "connery424-ui",
+        "repo": "autobt"
+      }
+    ],
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -120,6 +127,7 @@
     }
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "express": "^4.18.2",
     "open": "^8.4.2"
   },

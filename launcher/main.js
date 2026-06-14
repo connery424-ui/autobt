@@ -11,6 +11,7 @@
  */
 
 const { app, BrowserWindow, ipcMain, dialog, shell, Menu, Tray } = require('electron');
+const { autoUpdater } = require('electron-updater');
 
 // Override the default 'Electron' name shown in the macOS menu bar
 app.name = 'AutoBot Trading';
@@ -856,6 +857,30 @@ async function initApp() {
     }
 }
 
+// Auto-update from the public GitHub releases (connery424-ui/autobt). Public repo,
+// so no token is needed at runtime — electron-updater reads latest.yml from the
+// release feed. Only runs in the packaged app; never during `npm run dev`.
+function setupAutoUpdater() {
+    if (!app.isPackaged) return; // dev mode has no update feed
+    autoUpdater.autoDownload = true;
+    autoUpdater.on('error', (err) => console.error('AutoUpdater error:', err?.message || err));
+    autoUpdater.on('update-available', (info) => console.log('Update available:', info?.version));
+    autoUpdater.on('update-not-available', () => console.log('App is up to date'));
+    autoUpdater.on('update-downloaded', (info) => {
+        // Offer to restart into the new version; don't force-interrupt a trade.
+        dialog.showMessageBox(mainWindow || null, {
+            type: 'info',
+            buttons: ['Restart now', 'Later'],
+            defaultId: 0,
+            cancelId: 1,
+            title: 'Update ready',
+            message: `AutoBot Trading ${info?.version || ''} has been downloaded.`,
+            detail: 'Restart to install it now, or it will be applied on next launch.',
+        }).then(({ response }) => { if (response === 0) { isQuitting = true; autoUpdater.quitAndInstall(); } });
+    });
+    autoUpdater.checkForUpdatesAndNotify().catch((e) => console.warn('Update check failed:', e?.message));
+}
+
 // App ready
 app.whenReady().then(() => {
     // Set dock icon on macOS (BrowserWindow icon option doesn't affect the dock)
@@ -866,6 +891,7 @@ app.whenReady().then(() => {
         }
     }
     initApp();
+    setupAutoUpdater();
 });
 
 // Quit when all windows are closed (including macOS)

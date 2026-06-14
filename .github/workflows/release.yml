@@ -52,15 +52,20 @@ jobs:
 
       - name: Build Windows installer
         working-directory: launcher
-        run: npm run build:win
+        # --publish never: build + generate latest.yml locally; the publish job below
+        # attaches everything to the Release (avoids electron-builder double-publishing).
+        run: npm run build:win -- --publish never
 
-      # ---- Collect artifacts ----
+      # ---- Collect artifacts (installer + auto-update feed) ----
       - name: Upload installers
         uses: actions/upload-artifact@v4
         with:
           name: installers-${{ matrix.os }}
+          # latest.yml + .blockmap are required by electron-updater for auto-update.
           path: |
             launcher/dist/*.exe
+            launcher/dist/*.blockmap
+            launcher/dist/latest.yml
           if-no-files-found: warn
 
   # Optional: attach everything to a GitHub Release when triggered by a tag.
