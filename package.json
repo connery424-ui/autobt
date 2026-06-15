@@ -1,7 +1,7 @@
 {
   "name": "autobot-trading",
   "private": true,
-  "version": "2.8.11",
+  "version": "2.8.12",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { startTradeToasts } from '../lib/tradeToasts';
 import { LayoutDashboard, History, LineChart, Settings as SettingsIcon, Wallet, Target, Briefcase, ArrowDownUp } from 'lucide-react';
@@ -17,6 +17,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { disconnect } = useWallet();
   const { isAuthenticated, user, logout, sessionToken } = useAuth();
   const walletAddress = user?.walletAddress;
+
+  // Installed app version (Electron) for the sidebar footer.
+  const [appVersion, setAppVersion] = useState('');
+  useEffect(() => {
+    (window as any).autotrader?.getVersion?.().then(setAppVersion).catch(() => {});
+  }, []);
 
   // App-wide trade toasts: green buys / red sells, bottom-right, 10s each.
   // Singleton — safe to call on every layout mount.
@@ -85,6 +91,13 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             })}
           </div>
         </nav>
+
+        {/* Current app version, pinned bottom-left */}
+        {appVersion && (
+          <div className="absolute bottom-0 left-0 w-full px-4 py-3 text-[11px] text-muted-foreground/70 select-none">
+            v{appVersion}
+          </div>
+        )}
       </div>
 
       {/* Main content */}
