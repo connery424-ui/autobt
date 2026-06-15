@@ -1,14 +1,14 @@
-# 🚀 AutoTraderBot - Advanced Solana Trading Bot
+# AutoBot Trading
 
-Solana trading bot running **fully local with no cloud database required**.
+A Solana trading bot running fully local with no cloud database required.
 
-> **Windows users:** see **[INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)** — download the `.exe` from
-> [Releases](https://github.com/connery424-ui/autobt/releases), no command line needed.
-> **Security & supply-chain notes:** see **[SECURITY.md](SECURITY.md)**. Your keys stay local; install with `npm ci`.
+> **Windows users:** see **[INSTALL_WINDOWS.md](https://github.com/connery424-ui/autobt/blob/main/docs/INSTALL_WINDOWS.md)** — download the `.exe` from [Releases](https://github.com/connery424-ui/autobt/releases), no command line needed.
+> **Security & supply-chain notes:** see **[SECURITY.md](https://github.com/connery424-ui/autobt/blob/main/docs/SECURITY.md)**. Your keys stay local; install with `npm ci`.
 
 ---
 
 ## 🛡️ Security Features
+
 - **AES-256-GCM Encryption** — All private keys encrypted with 256-bit keys
 - **PBKDF2 Key Derivation** — 100,000 iterations with per-wallet salts
 - **Secure Memory Management** — Automatic cleanup of sensitive data
@@ -16,14 +16,15 @@ Solana trading bot running **fully local with no cloud database required**.
 - **JWT Authentication** — All wallet operations JWT-protected
 - **Secure Deletion** — Permanent wallet deletion with confirmation phrases
 
-## ✨ Trading Features
-- **🔗 Multi-DEX Support** — Jupiter and Raydium integration
-- **🛡️ MEV Protection** — Jito bundle integration for front-running prevention
-- **📊 Real-Time Analytics** — Live trading performance tracking
-- **🗄️ Local SQLite Database** — Zero-config, no cloud setup required
-- **🌐 WebSocket Support** — Real-time balance and transaction updates
-- **🖥️ Electron Desktop App** — Native desktop experience
-- **📱 Modern UI** — React + Tailwind CSS
+## Trading Features
+
+- **Multi-DEX Support** — Jupiter and Raydium integration
+- **pump.fun / Pre-Bonded Sniping** — Execution on new token creation
+- **MEV Protection** — Jito bundle integration
+- **Real-Time Analytics** — Live trading performance tracking
+- **Local SQLite Database** — Zero-config, no cloud setup required
+- **WebSocket Support** — Real-time balance and transaction updates
+- **Electron Desktop App** — Native desktop experience (React + Tailwind CSS)
 
 ---
 
@@ -47,15 +48,19 @@ Solana trading bot running **fully local with no cloud database required**.
 
 ---
 
-## ⬇️ Download & Install (Fresh Setup)
+## ⬇️ Download & Install (Windows — no setup)
 
-> **macOS users** — the installer is included right in this repo. No Node.js required to get started.
+> **For most users.** No Node.js, no command line — just download and run.
 
-1. **Download / clone** this repo
-2. **Double-click `INSTALL.command`** in the root folder — it auto-detects the pre-built installer DMG and launches the GUI setup wizard
-3. Follow the on-screen steps to configure your API keys and install the app
+1. Go to the **[Releases page](https://github.com/connery424-ui/autobt/releases/latest)**.
+2. Under **Assets**, download the latest **`AutoBot-Trading-Setup-x.x.x.exe`**.
+3. Double-click it and follow the installer — it adds an **AutoBot Trading** icon to your desktop and Start menu.
+   - Windows SmartScreen may warn that the app is unsigned (no paid code-signing cert). Click **More info → Run anyway** — expected for open-source apps.
+4. On first launch, open **Settings → API Keys & RPC** and paste your free **Helius API key** (from [helius.dev](https://helius.dev)) — required before the app can reach Solana.
 
-> If macOS blocks the file: right-click → **Open** to bypass Gatekeeper.
+> **Updating:** the app has a **Check for Update** button in the header (next to the settings gear). Click it to fetch the latest release, review the changelog, and install — nothing updates automatically.
+
+Full walkthrough (including run-from-source): **[docs/INSTALL_WINDOWS.md](docs/INSTALL_WINDOWS.md)**.
 
 ---
 
@@ -244,6 +249,8 @@ autobt/
 
 ## 📚 Documentation
 
+- [`docs/INSTALL_WINDOWS.md`](docs/INSTALL_WINDOWS.md) — Windows install (`.exe`) + run-from-source
+- [`docs/SECURITY.md`](docs/SECURITY.md) — Security model & npm supply-chain hardening
 - [`SETUP.md`](../SETUP.md) — Quick setup guide
 - [`README/DEVELOPMENT_SETUP_GUIDE.md`](./DEVELOPMENT_SETUP_GUIDE.md) — Full dev setup
 - [`README/TROUBLESHOOTING_GUIDE.md`](./TROUBLESHOOTING_GUIDE.md) — Common issues
