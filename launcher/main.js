@@ -315,8 +315,10 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js')
         },
         icon: path.join(__dirname, 'assets', 'icon.png'),
+        autoHideMenuBar: true,  // no File/Edit/View… menu bar
         show: false // Don't show until ready
     });
+    mainWindow.setMenuBarVisibility(false);
 
     // Capture the renderer console into debug.log (not visible in prod otherwise).
     mainWindow.webContents.on('console-message', (_e, level, message, line, sourceId) => {
@@ -1018,6 +1020,9 @@ ipcMain.handle('updates:get-version', () => app.getVersion());
 
 // App ready
 app.whenReady().then(() => {
+    // Remove the default File/Edit/View/Window/Help menu entirely. Clipboard
+    // shortcuts (Ctrl+C/V/X/A) still work — Chromium handles those in inputs.
+    Menu.setApplicationMenu(null);
     // Set dock icon on macOS (BrowserWindow icon option doesn't affect the dock)
     if (process.platform === 'darwin' && app.dock) {
         const dockIcon = path.join(__dirname, 'assets', 'icon.png');
