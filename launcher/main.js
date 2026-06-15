@@ -867,11 +867,17 @@ async function initApp() {
 // so no token is needed at runtime — electron-updater reads latest.yml from the
 // release feed.
 //
-// FULLY MANUAL: nothing is checked, downloaded, or installed automatically. The
-// in-app "Check for Update" button (and the tray "Check for Updates…" item) drive
-// the whole flow. Every state transition is streamed to the renderer over the
-// 'update-status' channel so the button/modal can reflect it.
+// MANUAL with a quiet nudge: nothing is ever downloaded or installed without an
+// explicit user click. A silent background check runs on launch and every few
+// hours; if it finds a newer release it only flips the in-app button to "Update
+// available" (no popup, no download). The user still drives download + install
+// from the button (or the tray "Check for Updates…" item). Every state is
+// streamed to the renderer over the 'update-status' channel.
 let latestUpdateInfo = null; // info from the most recent 'update-available'
+let silentCheck = false;     // true while a background check is running (no popup/feedback)
+
+const BG_CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000; // re-check every 6 hours
+const BG_CHECK_STARTUP_DELAY_MS = 60 * 1000;     // first check ~1 min after launch
 
 // electron-updater returns releaseNotes as either a string (GitHub release body)
 // or an array of { version, note }. Normalize to a single string for the modal.
@@ -903,23 +909,24 @@ function setupAutoUpdater() {
     autoUpdater.autoInstallOnAppQuit = false;
 
     autoUpdater.on('checking-for-update', () => {
-        sendUpdateStatus({ state: 'checking' });
+        sendUpdateStatus({ state: 'checking', silent: silentCheck });
     });
 
     autoUpdater.on('update-available', (info) => {
-        console.log('Update available:', info?.version);
+        console.log('Update available:', info?.version, silentCheck ? '(background)' : '(user)');
         latestUpdateInfo = info;
         sendUpdateStatus({
             state: 'available',
             version: info?.version,
             releaseNotes: normalizeReleaseNotes(info?.releaseNotes),
             releaseDate: info?.releaseDate,
+            silent: silentCheck, // background find: turn the button blue, no popup
         });
     });
 
     autoUpdater.on('update-not-available', () => {
         console.log('App is up to date');
-        sendUpdateStatus({ state: 'not-available', version: app.getVersion() });
+        sendUpdateStatus({ state: 'not-available', version: app.getVersion(), silent: silentCheck });
     });
 
     autoUpdater.on('download-progress', (p) => {
@@ -939,10 +946,25 @@ function setupAutoUpdater() {
 
     autoUpdater.on('error', (err) => {
         console.error('AutoUpdater error:', err?.message || err);
-        sendUpdateStatus({ state: 'error', message: String(err?.message || err) });
+        sendUpdateStatus({ state: 'error', message: String(err?.message || err), silent: silentCheck });
     });
 
-    // NOTE: intentionally no check on launch — the user triggers it from the UI.
+    // Quiet background checks (packaged builds only): one shortly after launch,
+    // then on an interval. These never download — a find just flips the button.
+    if (app.isPackaged) {
+        setTimeout(runSilentCheck, BG_CHECK_STARTUP_DELAY_MS);
+        setInterval(runSilentCheck, BG_CHECK_INTERVAL_MS);
+    }
+}
+
+// Background check: marks the check silent so the renderer only updates the button
+// (no popup) and swallows "checking/up-to-date/error" noise.
+function runSilentCheck() {
+    if (!app.isPackaged) return;
+    silentCheck = true;
+    autoUpdater.checkForUpdates().catch((e) => {
+        console.warn('Background update check failed:', e?.message || e);
+    });
 }
 
 // Trigger a check from the tray (mirrors the in-app button: the renderer modal
@@ -953,6 +975,7 @@ function checkForUpdatesManual() {
         sendUpdateStatus({ state: 'not-available', version: app.getVersion(), dev: true });
         return;
     }
+    silentCheck = false; // user-initiated — show feedback / open the modal on a find
     autoUpdater.checkForUpdates().catch((e) => {
         sendUpdateStatus({ state: 'error', message: String(e?.message || e) });
     });
@@ -965,6 +988,7 @@ ipcMain.handle('updates:check', async () => {
         sendUpdateStatus({ state: 'not-available', version: app.getVersion(), dev: true });
         return { ok: false, dev: true, version: app.getVersion() };
     }
+    silentCheck = false; // user-initiated — show feedback / open the modal on a find
     try {
         await autoUpdater.checkForUpdates();
         return { ok: true };

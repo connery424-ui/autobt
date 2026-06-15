@@ -31,6 +31,7 @@ interface UpdateStatus {
     percent?: number;
     message?: string;
     dev?: boolean;
+    silent?: boolean; // background check — update the button only, no popup/noise
 }
 
 const getAPI = () => (window as any).autotrader;
@@ -67,6 +68,7 @@ const UpdateButton: React.FC = () => {
         const unsubscribe = api?.onUpdateStatus?.((status: UpdateStatus) => {
             switch (status.state) {
                 case 'checking':
+                    if (status.silent) break; // background check — stay quiet
                     setError('');
                     setState('checking');
                     break;
@@ -74,7 +76,9 @@ const UpdateButton: React.FC = () => {
                     setVersion(status.version || '');
                     setNotes(cleanNotes(status.releaseNotes));
                     setState('available');
-                    setModalOpen(true); // surface the changelog immediately
+                    // Only auto-open the changelog for a user-initiated check.
+                    // A background find just turns the button blue.
+                    if (!status.silent) setModalOpen(true);
                     break;
                 case 'downloading':
                     setPercent(status.percent || 0);
@@ -86,6 +90,7 @@ const UpdateButton: React.FC = () => {
                     setModalOpen(true);
                     break;
                 case 'not-available':
+                    if (status.silent) break; // background check found nothing — leave button as-is
                     setIsDev(!!status.dev);
                     setState('up-to-date');
                     setModalOpen(false);
@@ -93,6 +98,7 @@ const UpdateButton: React.FC = () => {
                     upToDateTimer.current = setTimeout(() => setState('idle'), 3500);
                     break;
                 case 'error':
+                    if (status.silent) break; // background errors stay silent
                     setError(status.message || 'Update check failed');
                     setState('error');
                     break;
