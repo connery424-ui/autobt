@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Download, RefreshCw, RotateCw, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 
 /**
  * UpdateButton — fully-manual update control in the app header (left of the gear).
@@ -111,6 +111,19 @@ const UpdateButton: React.FC = () => {
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    // Escape closes the modal + lock background scroll while it's open.
+    useEffect(() => {
+        if (!modalOpen) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setModalOpen(false); };
+        document.addEventListener('keydown', onKey);
+        const prevOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.removeEventListener('keydown', onKey);
+            document.body.style.overflow = prevOverflow;
+        };
+    }, [modalOpen]);
 
     const handleCheck = useCallback(() => {
         const api = getAPI();
@@ -227,16 +240,20 @@ const UpdateButton: React.FC = () => {
                 {btnContent}
             </button>
 
-            <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-                <DialogContent className="glass border border-border max-w-lg">
+            {modalOpen && createPortal(
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4"
+                    onClick={(e) => { if (e.target === e.currentTarget) setModalOpen(false); }}
+                >
+                <div className="glass border border-border rounded-lg max-w-lg w-full p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
                     {state === 'downloaded' ? (
                         <>
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
                                     <CheckCircle2 className="w-5 h-5 text-green-400" />
                                     Update downloaded
-                                </DialogTitle>
-                            </DialogHeader>
+                                </h3>
+                            </div>
                             <p className="text-sm text-muted-foreground">
                                 AutoBot Trading <span className="text-foreground font-medium">v{version}</span> is
                                 ready to install. The app will restart to finish.
@@ -258,12 +275,12 @@ const UpdateButton: React.FC = () => {
                         </>
                     ) : state === 'downloading' ? (
                         <>
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
                                     <Download className="w-5 h-5 text-blue-400" />
                                     Downloading update
-                                </DialogTitle>
-                            </DialogHeader>
+                                </h3>
+                            </div>
                             <p className="text-sm text-muted-foreground mb-3">
                                 Getting AutoBot Trading <span className="text-foreground font-medium">v{version}</span>…
                             </p>
@@ -278,12 +295,12 @@ const UpdateButton: React.FC = () => {
                     ) : (
                         // 'available'
                         <>
-                            <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
+                            <div className="mb-4">
+                                <h3 className="text-lg font-semibold leading-none tracking-tight flex items-center gap-2">
                                     <Download className="w-5 h-5 text-blue-400" />
                                     Update available
-                                </DialogTitle>
-                            </DialogHeader>
+                                </h3>
+                            </div>
                             <div className="flex items-center gap-2 text-sm mb-3">
                                 <span className="text-muted-foreground">
                                     {currentVersion ? `v${currentVersion}` : 'current'}
@@ -313,8 +330,10 @@ const UpdateButton: React.FC = () => {
                             </div>
                         </>
                     )}
-                </DialogContent>
-            </Dialog>
+                </div>
+                </div>,
+                document.body
+            )}
         </>
     );
 };
