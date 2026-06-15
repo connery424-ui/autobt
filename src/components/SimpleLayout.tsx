@@ -4,6 +4,7 @@ import { startTradeToasts } from '../lib/tradeToasts';
 import { LayoutDashboard, History, LineChart, Settings as SettingsIcon, Wallet, Target, Briefcase, ArrowDownUp } from 'lucide-react';
 import ElectronWalletButton from './ElectronWalletButton';
 import GlobalSettingsMenu from './GlobalSettingsMenu';
+import UpdateButton from './UpdateButton';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -89,6 +90,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main content */}
       <div className="flex-1 ml-64">
         <header className="h-16 glass border-b border-border flex items-center justify-end px-4 gap-4 relative z-50">
+          {/* Manual update check — sits just left of the settings gear */}
+          <UpdateButton />
           {/* Global settings gear (audit §8.1) */}
           <GlobalSettingsMenu />
           {isAuthenticated ? (

@@ -865,82 +865,132 @@ async function initApp() {
 
 // Auto-update from the public GitHub releases (connery424-ui/autobt). Public repo,
 // so no token is needed at runtime — electron-updater reads latest.yml from the
-// release feed. Auto-checks on launch; also triggerable from the tray menu.
-let manualUpdateCheck = false; // true when the user clicked "Check for Updates"
+// release feed.
+//
+// FULLY MANUAL: nothing is checked, downloaded, or installed automatically. The
+// in-app "Check for Update" button (and the tray "Check for Updates…" item) drive
+// the whole flow. Every state transition is streamed to the renderer over the
+// 'update-status' channel so the button/modal can reflect it.
+let latestUpdateInfo = null; // info from the most recent 'update-available'
+
+// electron-updater returns releaseNotes as either a string (GitHub release body)
+// or an array of { version, note }. Normalize to a single string for the modal.
+function normalizeReleaseNotes(notes) {
+    if (!notes) return '';
+    if (typeof notes === 'string') return notes;
+    if (Array.isArray(notes)) {
+        return notes
+            .map((n) => (typeof n === 'string' ? n : `${n.version ? `v${n.version}\n` : ''}${n.note || ''}`))
+            .join('\n\n');
+    }
+    return String(notes);
+}
+
+// Push an update-status object to the renderer (no-op if the window is gone).
+function sendUpdateStatus(status) {
+    try {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('update-status', status);
+        }
+    } catch (e) {
+        console.warn('Could not send update-status:', e?.message);
+    }
+}
 
 function setupAutoUpdater() {
-    autoUpdater.autoDownload = true;
+    // Manual only — never download or install without an explicit user action.
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = false;
 
-    autoUpdater.on('error', (err) => {
-        console.error('AutoUpdater error:', err?.message || err);
-        if (manualUpdateCheck) {
-            manualUpdateCheck = false;
-            dialog.showMessageBox(mainWindow || null, {
-                type: 'error', title: 'Update check failed',
-                message: 'Could not check for updates.', detail: String(err?.message || err),
-            });
-        }
+    autoUpdater.on('checking-for-update', () => {
+        sendUpdateStatus({ state: 'checking' });
     });
 
     autoUpdater.on('update-available', (info) => {
         console.log('Update available:', info?.version);
-        if (manualUpdateCheck) {
-            dialog.showMessageBox(mainWindow || null, {
-                type: 'info', title: 'Update available',
-                message: `Version ${info?.version} is available.`,
-                detail: "Downloading in the background — you'll be prompted to restart when it's ready.",
-            });
-        }
+        latestUpdateInfo = info;
+        sendUpdateStatus({
+            state: 'available',
+            version: info?.version,
+            releaseNotes: normalizeReleaseNotes(info?.releaseNotes),
+            releaseDate: info?.releaseDate,
+        });
     });
 
     autoUpdater.on('update-not-available', () => {
         console.log('App is up to date');
-        if (manualUpdateCheck) {
-            manualUpdateCheck = false;
-            dialog.showMessageBox(mainWindow || null, {
-                type: 'info', title: 'Up to date',
-                message: `You're on the latest version (${app.getVersion()}).`,
-            });
-        }
+        sendUpdateStatus({ state: 'not-available', version: app.getVersion() });
+    });
+
+    autoUpdater.on('download-progress', (p) => {
+        sendUpdateStatus({
+            state: 'downloading',
+            percent: Math.round(p?.percent || 0),
+            transferred: p?.transferred,
+            total: p?.total,
+            bytesPerSecond: p?.bytesPerSecond,
+        });
     });
 
     autoUpdater.on('update-downloaded', (info) => {
-        manualUpdateCheck = false;
-        // Offer to restart into the new version; don't force-interrupt a trade.
-        dialog.showMessageBox(mainWindow || null, {
-            type: 'info',
-            buttons: ['Restart now', 'Later'],
-            defaultId: 0,
-            cancelId: 1,
-            title: 'Update ready',
-            message: `AutoBot Trading ${info?.version || ''} has been downloaded.`,
-            detail: 'Restart to install it now, or it will be applied on next launch.',
-        }).then(({ response }) => { if (response === 0) { isQuitting = true; autoUpdater.quitAndInstall(); } });
+        console.log('Update downloaded:', info?.version);
+        sendUpdateStatus({ state: 'downloaded', version: info?.version });
     });
 
-    // Automatic check shortly after launch (packaged builds only).
-    if (app.isPackaged) {
-        autoUpdater.checkForUpdatesAndNotify().catch((e) => console.warn('Update check failed:', e?.message));
-    }
+    autoUpdater.on('error', (err) => {
+        console.error('AutoUpdater error:', err?.message || err);
+        sendUpdateStatus({ state: 'error', message: String(err?.message || err) });
+    });
+
+    // NOTE: intentionally no check on launch — the user triggers it from the UI.
 }
 
-// Manual "Check for Updates" (tray menu). Shows feedback for every outcome.
+// Trigger a check from the tray (mirrors the in-app button: the renderer modal
+// reacts to the streamed 'update-status' events).
 function checkForUpdatesManual() {
+    if (mainWindow) mainWindow.show();
     if (!app.isPackaged) {
-        dialog.showMessageBox(mainWindow || null, {
-            type: 'info', title: 'Updates',
-            message: 'Update checks only work in the installed app, not in dev mode.',
-        });
+        sendUpdateStatus({ state: 'not-available', version: app.getVersion(), dev: true });
         return;
     }
-    manualUpdateCheck = true;
     autoUpdater.checkForUpdates().catch((e) => {
-        manualUpdateCheck = false;
-        dialog.showMessageBox(mainWindow || null, {
-            type: 'error', title: 'Update check failed', message: String(e?.message || e),
-        });
+        sendUpdateStatus({ state: 'error', message: String(e?.message || e) });
     });
 }
+
+// ---- Update IPC: driven by the in-app "Check for Update" button ----
+ipcMain.handle('updates:check', async () => {
+    if (!app.isPackaged) {
+        // Dev mode has no release feed — report dev so the UI can explain.
+        sendUpdateStatus({ state: 'not-available', version: app.getVersion(), dev: true });
+        return { ok: false, dev: true, version: app.getVersion() };
+    }
+    try {
+        await autoUpdater.checkForUpdates();
+        return { ok: true };
+    } catch (e) {
+        sendUpdateStatus({ state: 'error', message: String(e?.message || e) });
+        return { ok: false, message: String(e?.message || e) };
+    }
+});
+
+ipcMain.handle('updates:download', async () => {
+    try {
+        await autoUpdater.downloadUpdate();
+        return { ok: true };
+    } catch (e) {
+        sendUpdateStatus({ state: 'error', message: String(e?.message || e) });
+        return { ok: false, message: String(e?.message || e) };
+    }
+});
+
+ipcMain.handle('updates:install', () => {
+    isQuitting = true;
+    autoUpdater.quitAndInstall();
+    return { ok: true };
+});
+
+ipcMain.handle('updates:get-version', () => app.getVersion());
 
 // App ready
 app.whenReady().then(() => {
