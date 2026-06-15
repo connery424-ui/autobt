@@ -408,7 +408,10 @@ async function scanSells(): Promise<void> {
   if (selling) return;
   selling = true;
   try {
-    const settingsList = await prisma.snipe_settings.findMany({ where: { autoSellEnabled: true } }).catch(() => []);
+    // Gate on BOTH autoSellEnabled AND isActive. isActive is the master Start/Stop
+    // Sniper switch — without it, auto-sell kept selling positions while the sniper
+    // was toggled OFF. When the sniper is off, all automated wallet actions must stop.
+    const settingsList = await prisma.snipe_settings.findMany({ where: { autoSellEnabled: true, isActive: true } }).catch(() => []);
     for (const s of settingsList) {
       await evalUserSells(s).catch((e) => console.error('[autosell] evalUser error', e?.message));
     }
