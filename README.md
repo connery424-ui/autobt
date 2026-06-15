@@ -1,8 +1,8 @@
 # 🚀 AutoTraderBot - Advanced Solana Trading Bot
 
-A sophisticated Solana trading bot featuring military-grade wallet encryption, 0-block sniping, multi-DEX support, and a real-time desktop app — all running **fully local with no cloud database required**.
+Solana trading bot running **fully local with no cloud database required**.
 
-> **Windows users / friends:** see **[INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)** — download the `.exe` from
+> **Windows users:** see **[INSTALL_WINDOWS.md](INSTALL_WINDOWS.md)** — download the `.exe` from
 > [Releases](https://github.com/connery424-ui/autobt/releases), no command line needed.
 > **Security & supply-chain notes:** see **[SECURITY.md](SECURITY.md)**. Your keys stay local; install with `npm ci`.
 
@@ -17,7 +17,6 @@ A sophisticated Solana trading bot featuring military-grade wallet encryption, 0
 - **Secure Deletion** — Permanent wallet deletion with confirmation phrases
 
 ## ✨ Trading Features
-- **⚡ 0-Block Sniping** — Sub-second execution on token creation
 - **🔗 Multi-DEX Support** — Jupiter and Raydium integration
 - **🛡️ MEV Protection** — Jito bundle integration for front-running prevention
 - **📊 Real-Time Analytics** — Live trading performance tracking
