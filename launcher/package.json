@@ -1,6 +1,6 @@
 {
   "name": "autotraderbot-launcher",
-  "version": "2.8.4",
+  "version": "2.8.5",
   "engines": {
     "node": ">=20.0.0",
     "npm": ">=10.0.0"
@@ -112,6 +112,8 @@
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
       "allowToChangeInstallationDirectory": true,
       "installerIcon": "assets/icon.ico",
       "uninstallerIcon": "assets/icon.ico",

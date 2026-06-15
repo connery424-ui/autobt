@@ -143,13 +143,13 @@ interface ActiveSnipe {
 const DEFAULT_SETTINGS: SnipeSettings = {
     name: 'Default',
     isActive: false,
-    buyAmountSol: 0.1,
+    buyAmountSol: 0.001,
     slippageBps: 100,         // 1%
     useJito: true,
     jitoTipLamports: 50000,
-    minLiquidityUsd: 1000,    // treated as USD: $1,000 min
+    minLiquidityUsd: 0,       // no minimum
     maxLiquidityUsd: 35000,   // treated as USD: $35,000 max
-    maxTokenAgeSec: 2400,     // 40 minutes
+    maxTokenAgeSec: 172800,   // 48 hours
     minMarketCapUsd: 0,
     maxMarketCapUsd: 0,
 

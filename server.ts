@@ -3236,13 +3236,13 @@ app.get('/api/sniper/settings', authenticateUser, asyncHandler(async (req: Reque
         name: 'Default',
         isActive: false,
         walletId: null,
-        buyAmountSol: 0.1,
-        slippageBps: 100,
+        buyAmountSol: 0.001,
+        slippageBps: 100,         // 1%
         useJito: true,
         jitoTipLamports: 50000,
-        minLiquidityUsd: 1000,    // USD threshold ($1,000)
+        minLiquidityUsd: 0,       // no minimum
         maxLiquidityUsd: 35000,   // USD threshold ($35,000)
-        maxTokenAgeSec: 2400,     // 40 minutes
+        maxTokenAgeSec: 172800,   // 48 hours
         minMarketCapUsd: 0,       // no minimum by default
         maxMarketCapUsd: 0,       // no maximum by default
         enableRaydium: false,
@@ -3255,18 +3255,18 @@ app.get('/api/sniper/settings', authenticateUser, asyncHandler(async (req: Reque
         requireTwitter: false,
         requireTelegram: false,
         requireWebsite: false,
-        momentumEnabled: false,
+        momentumEnabled: true,
         minChange5m: null,
         minChange1h: null,
         minChange24h: null,
-        minTokenAgeSec: null,
+        minTokenAgeSec: 0,
         momentumCooldownSec: 300,
         momentumMaxPositions: 5,
-        autoSellEnabled: false,
-        takeProfitPercent: null,
-        stopLossPercent: null,
-        trailingStopPercent: null,
-        maxHoldSec: null
+        autoSellEnabled: true,
+        takeProfitPercent: 15,
+        stopLossPercent: 5,
+        trailingStopPercent: null, // off
+        maxHoldSec: 90
       }
     });
   } catch (error: any) {
