@@ -376,6 +376,12 @@ function createTray() {
                 }
             },
             { type: 'separator' },
+            { label: `Version ${app.getVersion()}`, enabled: false },
+            {
+                label: 'Check for Updates…',
+                click: () => checkForUpdatesManual()
+            },
+            { type: 'separator' },
             {
                 label: 'Quit',
                 click: () => {
@@ -859,14 +865,47 @@ async function initApp() {
 
 // Auto-update from the public GitHub releases (connery424-ui/autobt). Public repo,
 // so no token is needed at runtime — electron-updater reads latest.yml from the
-// release feed. Only runs in the packaged app; never during `npm run dev`.
+// release feed. Auto-checks on launch; also triggerable from the tray menu.
+let manualUpdateCheck = false; // true when the user clicked "Check for Updates"
+
 function setupAutoUpdater() {
-    if (!app.isPackaged) return; // dev mode has no update feed
     autoUpdater.autoDownload = true;
-    autoUpdater.on('error', (err) => console.error('AutoUpdater error:', err?.message || err));
-    autoUpdater.on('update-available', (info) => console.log('Update available:', info?.version));
-    autoUpdater.on('update-not-available', () => console.log('App is up to date'));
+
+    autoUpdater.on('error', (err) => {
+        console.error('AutoUpdater error:', err?.message || err);
+        if (manualUpdateCheck) {
+            manualUpdateCheck = false;
+            dialog.showMessageBox(mainWindow || null, {
+                type: 'error', title: 'Update check failed',
+                message: 'Could not check for updates.', detail: String(err?.message || err),
+            });
+        }
+    });
+
+    autoUpdater.on('update-available', (info) => {
+        console.log('Update available:', info?.version);
+        if (manualUpdateCheck) {
+            dialog.showMessageBox(mainWindow || null, {
+                type: 'info', title: 'Update available',
+                message: `Version ${info?.version} is available.`,
+                detail: "Downloading in the background — you'll be prompted to restart when it's ready.",
+            });
+        }
+    });
+
+    autoUpdater.on('update-not-available', () => {
+        console.log('App is up to date');
+        if (manualUpdateCheck) {
+            manualUpdateCheck = false;
+            dialog.showMessageBox(mainWindow || null, {
+                type: 'info', title: 'Up to date',
+                message: `You're on the latest version (${app.getVersion()}).`,
+            });
+        }
+    });
+
     autoUpdater.on('update-downloaded', (info) => {
+        manualUpdateCheck = false;
         // Offer to restart into the new version; don't force-interrupt a trade.
         dialog.showMessageBox(mainWindow || null, {
             type: 'info',
@@ -878,7 +917,29 @@ function setupAutoUpdater() {
             detail: 'Restart to install it now, or it will be applied on next launch.',
         }).then(({ response }) => { if (response === 0) { isQuitting = true; autoUpdater.quitAndInstall(); } });
     });
-    autoUpdater.checkForUpdatesAndNotify().catch((e) => console.warn('Update check failed:', e?.message));
+
+    // Automatic check shortly after launch (packaged builds only).
+    if (app.isPackaged) {
+        autoUpdater.checkForUpdatesAndNotify().catch((e) => console.warn('Update check failed:', e?.message));
+    }
+}
+
+// Manual "Check for Updates" (tray menu). Shows feedback for every outcome.
+function checkForUpdatesManual() {
+    if (!app.isPackaged) {
+        dialog.showMessageBox(mainWindow || null, {
+            type: 'info', title: 'Updates',
+            message: 'Update checks only work in the installed app, not in dev mode.',
+        });
+        return;
+    }
+    manualUpdateCheck = true;
+    autoUpdater.checkForUpdates().catch((e) => {
+        manualUpdateCheck = false;
+        dialog.showMessageBox(mainWindow || null, {
+            type: 'error', title: 'Update check failed', message: String(e?.message || e),
+        });
+    });
 }
 
 // App ready
