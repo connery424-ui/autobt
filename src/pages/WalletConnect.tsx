@@ -11,31 +11,11 @@ import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 const WalletConnect: React.FC = () => {
-    const { connected, publicKey, connecting, disconnect, select } = useWallet();
+    const { connected, publicKey } = useWallet();
     const [status, setStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
     const [sessionId, setSessionId] = useState<string>('');
     const [countdown, setCountdown] = useState(3);
     const [errorMsg, setErrorMsg] = useState<string>('');
-    const [lockHint, setLockHint] = useState<string>('');
-
-    // Locked-wallet recovery. If the wallet was locked, its first connect request can be
-    // swallowed by the unlock prompt and the adapter sticks in `connecting` with no way
-    // out — the page appears to hang on "Connecting…". If we're still connecting after a
-    // grace period without a publicKey, reset the adapter (disconnect + deselect) so the
-    // button is clickable again, and tell the user to unlock first. A successful connect
-    // clears this. Grace period is long enough not to interrupt a slow-but-working approve.
-    useEffect(() => {
-        if (!connecting || connected) return;
-        const t = setTimeout(async () => {
-            if (connected) return;
-            try { await disconnect(); } catch { /* wasn't connected */ }
-            try { (select as any)(null); } catch { /* ignore */ }
-            setLockHint('Your wallet looks locked. Unlock it in the extension, then click Connect again.');
-        }, 20000);
-        return () => clearTimeout(t);
-    }, [connecting, connected, disconnect, select]);
-
-    useEffect(() => { if (connected) setLockHint(''); }, [connected]);
 
     // Get session ID from URL on mount
     useEffect(() => {
@@ -201,13 +181,6 @@ const WalletConnect: React.FC = () => {
                         <div className="space-y-4">
                             <WalletMultiButton className="!w-full !bg-gradient-to-r !from-cyan-500 !to-purple-600 !hover:from-cyan-600 !hover:to-purple-700 !h-14 !rounded-xl !font-semibold !text-lg !transition-all !shadow-lg" />
                         </div>
-
-                        {/* Locked-wallet recovery hint (shown if the adapter got stuck) */}
-                        {lockHint && (
-                            <div className="mt-4 p-3 bg-amber-500/10 rounded-lg border border-amber-500/40 text-center">
-                                <p className="text-amber-300 text-sm">{lockHint}</p>
-                            </div>
-                        )}
 
                         {/* Session indicator */}
                         {sessionId && (

@@ -44,18 +44,9 @@ const SolanaWalletProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     console.error('Wallet error:', error);
   }, []);
 
-  // On the standalone /wallet-connect page, autoConnect must be OFF. With it on, the
-  // adapter fires a silent (gesture-less) connect on load; against a LOCKED wallet that
-  // leaves the adapter wedged in `connecting`, so the user's later click never reaches
-  // the wallet and Phantom never queues its unlock prompt. With autoConnect off, the
-  // only connect attempt is the user's button click — a real gesture — so the wallet
-  // queues the unlock and continues, like every other dApp.
-  const isWalletConnectPage =
-    typeof window !== 'undefined' && window.location.pathname.startsWith('/wallet-connect');
-
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} onError={onError} autoConnect={!isWalletConnectPage}>
+      <WalletProvider wallets={wallets} onError={onError} autoConnect>
         <WalletModalProvider>
           {children}
         </WalletModalProvider>
